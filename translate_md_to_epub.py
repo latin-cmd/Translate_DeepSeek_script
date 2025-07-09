@@ -3,6 +3,36 @@ from ebooklib import epub
 import markdown
 import sys
 import os
+import json
+import signal
+
+# 全局变量用于保存进度
+progress_file = None
+current_progress = {}
+
+def signal_handler(signum, frame):
+    """处理中断信号，保存进度后退出"""
+    print("\n收到中断信号，正在保存翻译进度...")
+    save_progress()
+    print("进度已保存，程序退出")
+    sys.exit(0)
+
+def save_progress():
+    """保存翻译进度到文件"""
+    if progress_file and current_progress:
+        with open(progress_file, 'w', encoding='utf-8') as f:
+            json.dump(current_progress, f, ensure_ascii=False, indent=2)
+        print(f"翻译进度已保存到: {progress_file}")
+
+def load_progress(progress_file):
+    """从文件加载翻译进度"""
+    if os.path.exists(progress_file):
+        try:
+            with open(progress_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"加载进度文件失败: {e}")
+    return {"translated_paragraphs": [], "total_paragraphs": 0, "source_lang": "", "api_key": ""}
 
 def read_markdown(file_path):
     if not os.path.exists(file_path):
@@ -58,13 +88,60 @@ def translate(text, api_key, source_lang):
         print(f"翻译请求异常: {e}")
         return text
 
-def paragraphs_translate(paragraphs, api_key, source_lang):
-    translated = []
+def paragraphs_translate(paragraphs, api_key, source_lang, progress_file):
+    """翻译段落，支持进度保存和恢复"""
+    global current_progress
+    
+    # 加载已有进度
+    progress = load_progress(progress_file)
+    translated_paragraphs = progress.get("translated_paragraphs", [])
+    
+    # 检查是否可以继续之前的进度
+    if (len(translated_paragraphs) > 0 and 
+        progress.get("total_paragraphs") == len(paragraphs) and
+        progress.get("source_lang") == source_lang):
+        
+        print(f"发现已有翻译进度，已翻译 {len(translated_paragraphs)}/{len(paragraphs)} 段落")
+        choice = input("是否继续之前的翻译进度？(y/n): ").lower().strip()
+        if choice != 'y':
+            translated_paragraphs = []
+            progress = {"translated_paragraphs": [], "total_paragraphs": len(paragraphs), 
+                       "source_lang": source_lang, "api_key": api_key}
+    else:
+        # 开始新的翻译
+        translated_paragraphs = []
+        progress = {"translated_paragraphs": [], "total_paragraphs": len(paragraphs), 
+                   "source_lang": source_lang, "api_key": api_key}
+    
+    current_progress = progress
+    
+    # 设置中断信号处理
+    signal.signal(signal.SIGINT, signal_handler)
+    
     total = len(paragraphs)
-    for i, p in enumerate(paragraphs, 1):
-        print(f"翻译进度: {i}/{total}")
-        translated.append(translate(p, api_key, source_lang))
-    return translated
+    start_index = len(translated_paragraphs)
+    
+    print(f"开始翻译，从第 {start_index + 1} 段开始...")
+    
+    for i in range(start_index, total):
+        print(f"翻译进度: {i + 1}/{total} ({(i + 1) * 100 // total}%)")
+        
+        translated_text = translate(paragraphs[i], api_key, source_lang)
+        translated_paragraphs.append(translated_text)
+        
+        # 更新进度
+        current_progress["translated_paragraphs"] = translated_paragraphs
+        
+        # 每翻译10段保存一次进度
+        if (i + 1) % 10 == 0:
+            save_progress()
+            print(f"已保存进度到第 {i + 1} 段")
+    
+    # 翻译完成，保存最终进度
+    save_progress()
+    print("翻译完成！")
+    
+    return translated_paragraphs
 
 def md_to_epub(translated_md, output_path, title="翻译电子书"):
     html_content = markdown.markdown(translated_md)
@@ -97,8 +174,13 @@ def main():
         print("source_lang 只支持 'en' 或 'fr'")
         sys.exit(1)
     
+    # 设置进度文件路径
+    global progress_file
+    progress_file = f"{os.path.splitext(input_md)[0]}_progress.json"
+    
     print(f"开始处理文件: {input_md}")
     print(f"输出文件: {output_epub}")
+    print(f"进度文件: {progress_file}")
     print(f"源语言: {source_lang}")
     
     md_content = read_markdown(input_md)
@@ -107,11 +189,26 @@ def main():
     paragraphs = split_paragraphs(md_content)
     print(f"段落数量: {len(paragraphs)}")
     
-    translated_paragraphs = paragraphs_translate(paragraphs, api_key, source_lang)
-    translated_md = '\n\n'.join(translated_paragraphs)
-    
-    md_to_epub(translated_md, output_epub)
-    print(f"转换完成，输出文件: {output_epub}")
+    try:
+        translated_paragraphs = paragraphs_translate(paragraphs, api_key, source_lang, progress_file)
+        translated_md = '\n\n'.join(translated_paragraphs)
+        
+        md_to_epub(translated_md, output_epub)
+        print(f"转换完成，输出文件: {output_epub}")
+        
+        # 翻译完成后删除进度文件
+        if os.path.exists(progress_file):
+            os.remove(progress_file)
+            print(f"已删除进度文件: {progress_file}")
+            
+    except KeyboardInterrupt:
+        print("\n用户中断程序")
+        save_progress()
+        print("进度已保存，可以稍后继续翻译")
+    except Exception as e:
+        print(f"程序异常: {e}")
+        save_progress()
+        print("进度已保存")
 
 if __name__ == "__main__":
     main() 
