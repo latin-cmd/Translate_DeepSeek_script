@@ -83,7 +83,8 @@ def list_progress_files():
         except:
             print(f"{i}. {file} - 读取失败")
 
-if __name__ == "__main__":
+def main():
+    """Command line entry point."""
     if len(sys.argv) < 2:
         print("使用方法:")
         print("python decode_progress.py <进度文件> [输出格式]")
@@ -96,4 +97,8 @@ if __name__ == "__main__":
     else:
         progress_file = sys.argv[1]
         output_format = sys.argv[2] if len(sys.argv) > 2 else "md"
-        decode_progress(progress_file, output_format) 
+        decode_progress(progress_file, output_format)
+
+
+if __name__ == "__main__":
+    main() 

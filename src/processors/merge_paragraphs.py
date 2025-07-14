@@ -46,4 +46,16 @@ def merge_paragraphs(input_file, output_file, min_length=100):
 
 if __name__ == "__main__":
     # 可以调整min_length参数来控制合并的阈值
-    merge_paragraphs("book_clean.md", "book_merged.md", min_length=150) 
+    merge_paragraphs("book_clean.md", "book_merged.md", min_length=150)
+
+
+def main():
+    """Command line entry point."""
+    import sys
+    if len(sys.argv) != 3:
+        print("Usage: python merge_paragraphs.py <input_file> <output_file>")
+        sys.exit(1)
+    
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    merge_paragraphs(input_file, output_file) 

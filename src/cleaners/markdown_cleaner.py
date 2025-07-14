@@ -37,4 +37,16 @@ def clean_markdown(input_file, output_file):
     print(f"清理后字符数: {len(cleaned_content)}")
 
 if __name__ == "__main__":
-    clean_markdown("book.md", "book_clean.md") 
+    clean_markdown("book.md", "book_clean.md")
+
+
+def main():
+    """Command line entry point."""
+    import sys
+    if len(sys.argv) != 3:
+        print("Usage: python markdown_cleaner.py <input_file> <output_file>")
+        sys.exit(1)
+    
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    clean_markdown(input_file, output_file) 

@@ -1,169 +1,60 @@
-# Translation Toolkit (Translate Direct)
+# Translation Toolkit
 
-A Python toolkit for processing Markdown document translation, supporting document cleaning, paragraph processing, translation, and progress management.
+A comprehensive Python toolkit for processing and translating Markdown documents.
 
-## Features
+## 📁 Project Structure
 
-- **Document Cleaning**: Clean up extra blank lines and special characters in Markdown files
-- **Paragraph Processing**: Merge short paragraphs or reduce paragraph count
-- **Smart Translation**: Use DeepSeek API for Chinese-English translation
-- **Progress Management**: Support translation progress saving and recovery
-- **Format Conversion**: Convert translated content to EPUB e-book format
-- **Progress Decoding**: Extract translated content from progress files
+```
+translation-toolkit/
+├── src/                    # Source code
+│   ├── cleaners/          # Document cleaning modules
+│   ├── processors/        # Text processing modules
+│   ├── translators/       # Translation modules
+│   ├── converters/        # Format conversion modules
+│   └── utils/             # Utility functions
+├── docs/                  # Documentation
+│   ├── README.md          # English documentation
+│   ├── README_CN.md       # Chinese documentation
+│   └── README_FR.md       # French documentation
+├── tests/                 # Unit tests
+├── examples/              # Usage examples
+├── requirements.txt       # Python dependencies
+└── setup.py              # Installation script
+```
 
-## Installation
+## 🚀 Quick Start
 
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Tool Descriptions
-
-### 1. Document Cleaning (clean_md.py)
-
-Clean formatting issues in Markdown files:
-
+2. Install the package:
 ```bash
-python clean_md.py
+pip install -e .
 ```
 
-Features:
-- Remove consecutive blank lines
-- Clean leading and trailing whitespace
-- Remove special control characters
-- Normalize spaces
-- Ensure single blank line between paragraphs
-
-### 2. Paragraph Merging (merge_paragraphs.py)
-
-Merge short paragraphs to reduce paragraph count:
-
+3. Use the command-line tools:
 ```bash
-python merge_paragraphs.py
+# Clean markdown files
+translation-toolkit clean input.md output.md
+
+# Merge paragraphs
+translation-toolkit merge input.md output.md
+
+# Reduce paragraphs
+translation-toolkit reduce input.md output.md --max-paragraphs 50
+
+# Translate and convert to EPUB
+translation-toolkit translate input.md output.epub --api-key YOUR_API_KEY
 ```
 
-Parameters:
-- `min_length`: Minimum paragraph length threshold (default 150 characters)
+## 📖 Documentation
 
-### 3. Paragraph Reduction (reduce_paragraphs.py)
+- [English Documentation](docs/README.md)
+- [中文文档](docs/README_CN.md)
+- [Documentation Française](docs/README_FR.md)
 
-Intelligently reduce paragraph count while maintaining document structure:
+## 📄 License
 
-```bash
-python reduce_paragraphs.py <input_file> [target_count] [output_file]
-```
-
-Example:
-```bash
-python reduce_paragraphs.py book_merged.md 10 book_reduced.md
-```
-
-Features:
-- Preserve title and list structure
-- Intelligently merge regular paragraphs
-- Support custom target paragraph count
-
-### 4. Translation Tool (translate_md_to_epub.py)
-
-Translate Markdown files using DeepSeek API and convert to EPUB:
-
-```bash
-python translate_md_to_epub.py <input.md> <output.epub> <api_key> <source_lang>
-```
-
-Parameters:
-- `input.md`: Input Markdown file
-- `output.epub`: Output EPUB file
-- `api_key`: DeepSeek API key
-- `source_lang`: Source language (en/fr)
-
-Example:
-```bash
-python translate_md_to_epub.py book.md book_translated.epub your_api_key en
-```
-
-Features:
-- Support progress saving and recovery
-- Resume translation after interruption
-- Auto-generate progress files
-- Support English and French translation
-
-### 5. Progress Decoding (decode_progress.py)
-
-Extract translated content from translation progress files:
-
-```bash
-python decode_progress.py <progress_file> [output_format]
-```
-
-Example:
-```bash
-python decode_progress.py book_progress.json md
-python decode_progress.py book_progress.json txt
-```
-
-Features:
-- Display translation progress statistics
-- Extract translated content
-- Support Markdown and TXT format output
-- List all progress files
-
-## Workflow
-
-1. **Document Preprocessing**:
-   ```bash
-   python clean_md.py          # Clean original document
-   python merge_paragraphs.py  # Merge short paragraphs
-   python reduce_paragraphs.py # Reduce paragraph count (optional)
-   ```
-
-2. **Translation Processing**:
-   ```bash
-   python translate_md_to_epub.py book_merged.md book_translated.epub your_api_key en
-   ```
-
-3. **Progress Viewing**:
-   ```bash
-   python decode_progress.py book_merged_progress.json
-   ```
-
-## File Descriptions
-
-- `clean_md.py`: Document cleaning tool
-- `merge_paragraphs.py`: Paragraph merging tool
-- `reduce_paragraphs.py`: Paragraph reduction tool
-- `translate_md_to_epub.py`: Translation and EPUB conversion tool
-- `decode_progress.py`: Progress decoding tool
-- `requirements.txt`: Python dependencies
-
-## Important Notes
-
-1. **API Key**: Requires valid DeepSeek API key
-2. **File Encoding**: All files use UTF-8 encoding
-3. **Progress Files**: Translation process automatically generates `*_progress.json` files
-4. **Interrupt Recovery**: Press Ctrl+C during translation to save progress and exit
-5. **File Size**: Recommend reducing paragraph count before processing to improve translation efficiency
-
-## Environment Variables
-
-You can set environment variables to avoid exposing API keys in command line:
-
-```bash
-export DEEPSEEK_API_KEY="your_api_key_here"
-```
-
-Then use placeholder in command line:
-```bash
-python translate_md_to_epub.py book.md output.epub <API_KEY> en
-```
-
-## License
-
-This project is for learning and personal use only.
-
----
-
-## Multilingual Versions
-
-- [中文版本](README_CN.md)
-- [Version Française](README_FR.md) 
+MIT License
